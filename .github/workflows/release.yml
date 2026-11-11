@@ -59,8 +59,35 @@ jobs:
         run: bundle exec rubocop --format github
 
       # Exchanges this run's OIDC token for a short-lived RubyGems credential.
-      - if: steps.published.outputs.value == 'false'
-        uses: rubygems/configure-rubygems-credentials@v2.1.0
+      #
+      # This is what rubygems/configure-rubygems-credentials does, done by hand for one reason:
+      # RubyGems only lets a pending trusted publisher create a gem that does not exist yet when
+      # the exchange names the account that will own it, and that action (v2.1.0) has no way to
+      # send the `owner` parameter. The owner comes from the RUBYGEMS_OWNER repository variable,
+      # a RubyGems handle or account ID. It only matters for the very first push; once the gem
+      # exists the variable can be removed, and this step swapped back for the action.
+      - name: Get a RubyGems credential
+        if: steps.published.outputs.value == 'false'
+        shell: bash
+        env:
+          OWNER: ${{ vars.RUBYGEMS_OWNER }}
+        run: |
+          jwt=$(curl -sSf -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=rubygems.org" | jq -r '.value')
+          echo "::add-mask::${jwt}"
+
+          body=$(jq -n --arg jwt "${jwt}" --arg owner "${OWNER}" \
+            '{jwt: $jwt} + (if $owner == "" then {} else {owner: $owner} end)')
+          response=$(curl -sS -X POST -H 'Content-Type: application/json' -H 'Accept: application/json' \
+            -d "${body}" https://rubygems.org/api/v1/oidc/trusted_publisher/exchange_token)
+
+          key=$(jq -r '.rubygems_api_key // empty' <<< "${response}")
+          if [ -z "${key}" ]; then
+            echo "RubyGems refused the token exchange: ${response}" >&2
+            exit 1
+          fi
+          echo "::add-mask::${key}"
+          echo "GEM_HOST_API_KEY=${key}" >> "${GITHUB_ENV}"
 
       - name: Build and push the gem
         if: steps.published.outputs.value == 'false'
