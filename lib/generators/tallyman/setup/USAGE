@@ -5,6 +5,9 @@ Description:
     The models are called Invoice and LineItem unless you name them with
     --invoice-name and --line-item-name. Names can be CamelCase or under_scored.
 
+    Names are singularized, as `rails generate model` does. Pass --force-plural
+    to keep a name such as Media exactly as you typed it.
+
     Pass --skip-migration to generate the models only.
 
 Examples:

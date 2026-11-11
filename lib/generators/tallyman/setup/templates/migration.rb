@@ -1,4 +1,4 @@
-class CreateTallymanTables < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
+class <%= migration_name.camelize %> < ActiveRecord::Migration[<%= ActiveRecord::Migration.current_version %>]
   def change
     create_table :<%= invoice_table %> do |t|
       t.string :invoice_number
