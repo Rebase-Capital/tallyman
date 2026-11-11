@@ -1,0 +1,9 @@
+tmp/
+doc/
+.yardoc/
+*.gem
+.bundle
+pkg/*
+bin/
+.rubocop-http*
+.claude/

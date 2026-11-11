@@ -1,0 +1,20 @@
+Description:
+    Creates the invoice and line item models Tallyman renders, and a migration
+    for their tables with every column Tallyman reads.
+
+    The models are called Invoice and LineItem unless you name them with
+    --invoice-name and --line-item-name. Names can be CamelCase or under_scored.
+
+    Pass --skip-migration to generate the models only.
+
+Examples:
+    rails generate tallyman:setup
+
+        Creates the Invoice and LineItem models and a migration for the
+        invoices and line_items tables.
+
+    rails generate tallyman:setup --invoice-name=Bill --line-item-name=Charge
+
+        Creates the Bill and Charge models and a migration for the bills and
+        charges tables. A bill still reaches its charges through line_items,
+        which is the name Tallyman looks for.

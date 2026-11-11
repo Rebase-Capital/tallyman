@@ -1,0 +1,39 @@
+# frozen_string_literal: true
+
+require 'spec_helper'
+
+module Tallyman
+
+  describe Config do
+    before { described_class.default.reset }
+
+    # The default logo used to point into spec/assets, which only resolved because the gemspec
+    # shipped the spec suite. Anything the defaults reference has to live under lib.
+    it 'defaults to a logo that ships with the gem' do
+      expect(File.exist?(described_class.default.invoice_logo)).to be true
+    end
+
+    it 'keeps the default logo under lib, where the packaged gem can reach it' do
+      expect(described_class.default.invoice_logo).to include('/lib/tallyman/assets/')
+    end
+
+    it 'defaults to a page size the template understands' do
+      expect(described_class.default.page_size).to eq('LETTER')
+    end
+
+    describe '#value_for' do
+      it "prefers the invoice's own value" do
+        expect(described_class.default.value_for(Invoice.new(currency: 'EUR'), :currency)).to eq('EUR')
+      end
+
+      it 'falls back to the config when the invoice leaves it unset' do
+        expect(described_class.default.value_for(Invoice.new, :currency)).to eq('USD')
+      end
+
+      it "falls back to the config when the invoice doesn't define it" do
+        expect(described_class.default.value_for(Invoice.new, :page_size)).to eq('LETTER')
+      end
+    end
+  end
+
+end

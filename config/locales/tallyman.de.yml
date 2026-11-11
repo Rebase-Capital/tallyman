@@ -1,0 +1,24 @@
+de:
+  tallyman:
+    status:
+      overdue: ÜBERFÄLLIG
+      paid: BEZAHLT
+      refunded: ERSTATTET
+    invoice:
+      bill_to: Rechnung an
+      ship_to: Lieferadresse
+      invoice_no: "Rechnungsnr.:"
+      receipt_no: "Quittungsnr.:"
+      due_date: "Fälligkeit:"
+      paid_date: "Zahlungsdatum:"
+      subtotal: "Zwischensumme:"
+      shipping: "Versand:"
+      tax: "Steuern:"
+      retention: "Einbehalt:"
+      total: "Gesamt:"
+      notes: "Anmerkungen:"
+    line_item:
+      description: Beschreibung
+      unit_price: Stückpreis
+      quantity: Menge
+      amount: Betrag

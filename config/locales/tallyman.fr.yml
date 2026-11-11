@@ -1,0 +1,24 @@
+fr:
+  tallyman:
+    status:
+      paid: PAYÉ
+      overdue: "EN RETARD"
+      refunded: "REMBOURSÉ"
+    invoice:
+      bill_to: "Adresse de facturation"
+      ship_to: "Adresse de livraison"
+      invoice_no: "Numéro de facture proforma :"
+      receipt_no: "Numéro de facture :"
+      due_date: "Date limite de paiement :"
+      paid_date: "Date de paiement :"
+      subtotal: "Sous-total :"
+      shipping: "Livraison :"
+      tax: "Taxes :"
+      retention: "Retenue :"
+      total: "Total :"
+      notes: "Notes :"
+    line_item:
+      description: Description
+      unit_price: "Prix unitaire"
+      quantity: Quantité
+      amount: Montant

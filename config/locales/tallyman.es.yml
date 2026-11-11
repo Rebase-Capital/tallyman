@@ -1,0 +1,24 @@
+es:
+  tallyman:
+    status:
+      paid: PAGADO
+      overdue: VENCIDO
+      refunded: REEMBOLSADO
+    invoice:
+      bill_to: "Facturar a"
+      ship_to: "Enviar a"
+      invoice_no: "Número de factura proforma:"
+      receipt_no: "Número de factura:"
+      due_date: "Vencimiento:"
+      paid_date: "Fecha de pago:"
+      subtotal: "Subtotal:"
+      shipping: "Envío:"
+      tax: "Impuesto:"
+      retention: "Retención:"
+      total: "Total:"
+      notes: "Notas:"
+    line_item:
+      description: Descripción
+      unit_price: "Precio unitario"
+      quantity: Cantidad
+      amount: Importe

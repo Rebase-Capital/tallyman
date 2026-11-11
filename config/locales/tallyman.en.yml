@@ -1,0 +1,24 @@
+en:
+  tallyman:
+    status:
+      paid: PAID
+      overdue: OVERDUE
+      refunded: REFUNDED
+    invoice:
+      bill_to: "Bill To"
+      ship_to: "Ship To"
+      invoice_no: "Invoice number:"
+      receipt_no: "Receipt number:"
+      due_date: "Due Date:"
+      paid_date: "Paid Date:"
+      subtotal: "Subtotal:"
+      shipping: "Shipping:"
+      tax: "Tax:"
+      retention: "Retention:"
+      total: "Total:"
+      notes: "Notes:"
+    line_item:
+      description: Description
+      unit_price: "Unit Price"
+      quantity: Quantity
+      amount: Amount

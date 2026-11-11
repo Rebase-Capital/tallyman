@@ -1,0 +1,24 @@
+zh-CN:
+  tallyman:
+    status:
+      paid: 已付款
+      overdue: 已逾期
+      refunded: 已退款
+    invoice:
+      bill_to: 账单地址
+      ship_to: 送货地址
+      invoice_no: "发票号码:"
+      receipt_no: "收据号码:"
+      due_date: "到期日期:"
+      paid_date: "支付日期:"
+      subtotal: "小计:"
+      shipping: "运费:"
+      tax: "税费:"
+      retention: "扣缴:"
+      total: "总计:"
+      notes: "备注:"
+    line_item:
+      description: 描述
+      unit_price: 单价
+      quantity: 数量
+      amount: 金额

@@ -1,0 +1,24 @@
+nl:
+  tallyman:
+    status:
+      paid: BETAALD
+      overdue: VERVALLEN
+      refunded: TERUGBETAALD
+    invoice:
+      bill_to: Factuuradres
+      ship_to: Afleveradres
+      invoice_no: "Factuurnummer:"
+      receipt_no: "Kwitantienummer:"
+      due_date: "Vervaldatum:"
+      paid_date: "Betaald op:"
+      subtotal: "Subtotaal:"
+      shipping: "Verzendkosten:"
+      tax: "Btw:"
+      retention: "Inhouding:"
+      total: "Totaal:"
+      notes: "Opmerkingen:"
+    line_item:
+      description: Omschrijving
+      unit_price: Eenheidsprijs
+      quantity: Aantal
+      amount: Bedrag

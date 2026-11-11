@@ -1,0 +1,100 @@
+# frozen_string_literal: true
+
+# Include {Tallyman::Invoiceable} in your Invoice class to make it Tallyman compatible. Tallyman
+# expects that a +line_items+ method containing an Enumerable of {Tallyman::LineItem} compatible
+# elements exists. Those LineItem objects primarily need to include quantity, price, and description methods.
+#
+# The +bill_to+ method should always be overwritten by your class. Otherwise, it'll say that your invoice should
+# be billed to Goofy McGoofison. +ship_to+ is also available, but will not be used in rendered invoices if it
+# doesn't exist.
+#
+# Although not required, if a +tax_rate+ method exists, {Tallyman::Invoiceable} will use it to calculate tax
+# when generating an invoice. We include a simple tax method that calculates tax, but it's probably wiser
+# to override this in your class (our calculated tax won't be stored to a database by default, for example).
+#
+# If the +due_at+, +paid_at+, and +refunded_at+ methods are available, {Tallyman::Invoiceable} will use them
+# to show due dates, paid dates, and refunded dates, as well as stamps showing if the invoice is paid or due.
+module Tallyman
+
+  module Invoiceable
+
+    # Who the invoice is being sent to. A +bill_to+ the class already has wins over this
+    # placeholder: an ActiveRecord column reader sits behind this module in the ancestors, so
+    # without the +super+ a saved +bill_to+ would never be read.
+    def bill_to
+      return super if defined?(super)
+
+      "Goofy McGoofison\nYour Invoice Doesn't\nHave It's Own BillTo Method"
+    end
+
+    # Calculates the subtotal of this invoice by adding up all of the line items
+    def subtotal
+      line_items.reduce(BigDecimal(0)) { |result, item| result + item.amount }
+    end
+
+    # The tax for this invoice, as a BigDecimal
+    def tax
+      defined?(tax_rate) ? subtotal * tax_rate / 100 : 0
+    end
+
+    # TODO: Add a per weight unit shipping cost
+    # Calculates the shipping
+    def shipping
+      defined?(shipping_rate) ? shipping_rate : 0
+    end
+
+    # Calculates the retention (e.g. IRPF) as a percentage of the subtotal.
+    # This is a post-tax deduction subtracted from the total.
+    def retention
+      defined?(retention_rate) ? subtotal * retention_rate / 100 : 0
+    end
+
+    # Calculates the total for this invoice.
+    def total
+      subtotal + tax + shipping - retention
+    end
+
+    def overdue?
+      defined?(due_at) && Invoiceable.past?(due_at) && !paid_at
+    end
+
+    # Whether a Date is before today or a Time before now. A module function rather than a
+    # private method, so it does not land in the classes that include Invoiceable.
+    def self.past?(moment)
+      case moment
+      when Date then moment < Date.today
+      when Time then moment < Time.now
+      else false
+      end
+    end
+
+    def refunded?
+      defined?(refunded_at) && !!refunded_at
+    end
+
+    def paid?
+      defined?(paid_at) && !!paid_at
+    end
+
+    # Renders this invoice to pdf as a string. Pass a Tallyman::Appendix to compile pages of
+    # your own onto the end of it.
+    def render_pdf(appendix: nil)
+      Tallyman::PdfRenderer.render(self, appendix: appendix)
+    end
+
+    # Renders this invoice to pdf
+    def render_pdf_to_file(path, appendix: nil)
+      Tallyman::PdfRenderer.render_to_file(self, path, appendix: appendix)
+    end
+
+    # Iterates through the details on this invoiceable. The block given should accept
+    # two parameters, the detail name and the actual detail value.
+    def each_detail
+      return unless defined?(invoice_details)
+
+      invoice_details.each { |detail| yield detail[0], detail[1] }
+    end
+
+  end
+
+end
