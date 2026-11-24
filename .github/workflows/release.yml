@@ -25,7 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     environment: rubygems
     steps:
+      # The whole history, so the release step can find the commit that set the version.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.4"
@@ -95,20 +98,55 @@ jobs:
           gem build tallyman.gemspec
           gem push "tallyman-${{ steps.version.outputs.value }}.gem"
 
+      # Polls the RubyGems API rather than running rubygems-await: its 0.5.4 (the latest) calls a
+      # CompactIndexClient method that newer RubyGems no longer has, so it never sees the gem and
+      # times out after the push has succeeded (1.0.1's release run).
       - name: Wait for the release to propagate
         if: steps.published.outputs.value == 'false'
-        run: gem exec rubygems-await "tallyman-${{ steps.version.outputs.value }}.gem"
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -sSf https://rubygems.org/api/v1/versions/tallyman.json \
+                | jq -e --arg v "${VERSION}" 'any(.[]; .number == $v)' > /dev/null; then
+              echo "tallyman ${VERSION} is on RubyGems."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "tallyman ${VERSION} did not appear on RubyGems within five minutes." >&2
+          exit 1
 
       # The notes are the version's changelog entry, so the release page and the changelog
       # cannot drift apart. Tags carry no "v", like the earlier ones.
+      #
+      # This runs even when the gem was already published, so re-running the workflow finishes a
+      # release whose push went through but whose release page did not. The tag goes on the
+      # commit that set the version, not on whatever main has moved to since. Release Drafter
+      # keeps a draft named after the next version; when one is waiting, it is published with the
+      # changelog notes rather than left beside a second release of the same version.
       - name: Create the GitHub release
-        if: steps.published.outputs.value == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.value }}
         run: |
+          if gh release view "${VERSION}" --json isDraft --jq '.isDraft' 2>/dev/null | grep -q false; then
+            echo "The ${VERSION} release already exists."
+            exit 0
+          fi
+
           notes=$(ruby -e '
             changelog = File.read("CHANGELOG.md")
             print changelog[/^## #{Regexp.escape(ENV.fetch("VERSION"))}\b.*?(?=\n## |\z)/m].to_s.strip
           ')
-          gh release create "${VERSION}" --target "${GITHUB_SHA}" --title "${VERSION}" --notes "${notes}"
+          target=$(git log -1 --format=%H -- tallyman.gemspec)
+
+          draft=$(gh api "repos/${GITHUB_REPOSITORY}/releases" \
+            --jq ".[] | select(.draft and (.tag_name == \"${VERSION}\" or .name == \"${VERSION}\" or (.name | startswith(\"${VERSION} \")))) | .id" | head -n 1)
+          if [ -n "${draft}" ]; then
+            gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/${draft}" \
+              -f tag_name="${VERSION}" -f target_commitish="${target}" -f name="${VERSION}" \
+              -f body="${notes}" -F draft=false > /dev/null
+          else
+            gh release create "${VERSION}" --target "${target}" --title "${VERSION}" --notes "${notes}"
+          fi
