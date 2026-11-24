@@ -176,7 +176,9 @@ en:
 
 When `date_format` is not set, the due and paid dates are written with the active locale's `tallyman.invoice.date_format`, a strftime string, and its month names. Each shipped locale has one: "November 24, 2026" in English, "24. November 2026" in German, "24 november 2026" in Dutch, "24 de noviembre de 2026" in Spanish, "24 novembre 2026" in French and "2026年11月24日" in Simplified Chinese. Override the key like any other label.
 
-The month names come from your application's `date.month_names`, which a Rails app gets from [rails-i18n](https://github.com/svenfuchs/rails-i18n). Tallyman doesn't ship them. Without them the locale's layout is kept but the month is written in English, so a German invoice reads "2. March 2026" rather than "2. März 2026".
+The month names come from your application's `date.month_names`, which a Rails app gets from [rails-i18n](https://github.com/svenfuchs/rails-i18n). Tallyman doesn't ship them. Without them the locale's layout is kept but the month is written in English, so a German invoice reads "2. March 2026" rather than "2. März 2026". The same goes for a format you override with `%a`, `%A`, `%b` or `%p`: each needs its `date.*` (or `time.am`/`time.pm`) translations, or the date is written with English names.
+
+A locale with no `tallyman.invoice.date_format` of its own takes the one from its I18n fallbacks, month names included. With none to fall back on, dates stay in English, as in 1.0.0.
 
 If you translate the invoice into another language, a pull request adding your locale file is welcome.
 

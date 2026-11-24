@@ -81,7 +81,10 @@ module Tallyman # rubocop:todo Metrics/ModuleLength
       before { invoice.due_at = Date.new(2026, 3, 2) }
 
       # Stored translations outlive the example unless the backend is reloaded from load_path.
-      after { I18n.reload! }
+      after do
+        I18n.reload!
+        Tallyman::Config.default.reset
+      end
 
       def store_month_names(names)
         names.each { |locale, months| I18n.backend.store_translations(locale, date: {month_names: [nil, *months]}) }
@@ -129,6 +132,25 @@ module Tallyman # rubocop:todo Metrics/ModuleLength
       it "falls back to strftime with the locale's format when the host has no month names" do
         expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
           .to include(['Fälligkeit:', '2. March 2026'])
+      end
+
+      it 'falls back to strftime when an overridden format needs names the host lacks' do
+        store_month_names(month_names)
+        I18n.backend.eager_load! # or the gem's own files load later and win over this
+        I18n.backend.store_translations(:de, tallyman: {invoice: {date_format: '%a %-d. %B %Y'}})
+        expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
+          .to include(['Fälligkeit:', 'Mon 2. March 2026'])
+      end
+
+      it 'prints the Simplified Chinese layout' do
+        expect(I18n.with_locale(:'zh-CN') { described_class.new(invoice).to_h[:details] })
+          .to include(['到期日期:', '2026年3月2日'])
+      end
+
+      it 'keeps English dates for a locale Tallyman has no date format for' do
+        I18n.backend.store_translations(:ja, date: {month_names: [nil, *(1..12).map { |m| "#{m}月" }]})
+        expect(I18n.with_locale(:ja) { described_class.new(invoice).to_h[:details] })
+          .to include(['Due Date:', 'March  2, 2026'])
       end
     end
 
