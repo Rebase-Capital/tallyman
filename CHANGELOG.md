@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.0.1 (2026-11-24)
+
+* Dates follow the invoice's language. An invoice rendered in German used to carry German labels but English dates ("November 24, 2026"); it now reads "24. November 2026", and Dutch, Spanish, French and Simplified Chinese get their usual layout too. English is untouched.
+  * `Tallyman::Config#date_format` now defaults to `nil`. While it is unset, each locale's new `tallyman.invoice.date_format` key gives the layout and your application's `date.month_names` (from rails-i18n in a Rails app) give the month names. Without month names the month stays in English and nothing raises.
+  * A `date_format` set in `Tallyman::Config` or on the invoice works exactly as before: a plain strftime string, the same in every locale.
+* Spanish invoices are no longer labelled as proformas. An unpaid invoice printed "Número de factura proforma:", which in Spain is not a tax invoice and can be refused for VAT deduction; it now reads "Número de factura:", and a paid one reads "Número de recibo:", as English has "Invoice number:" and "Receipt number:".
+
 ## 1.0.0 (2026-11-11)
 
 The first release of Tallyman. It carries on from [Payday](https://github.com/webtranslateit/payday), which was published as `webtranslateit-payday`, and picks up where that gem's 2.1.2 left off. Everything before this release is in [Payday's changelog](https://github.com/webtranslateit/payday/blob/main/CHANGELOG.md).

@@ -60,6 +60,12 @@ Tallyman::Config.default.invoice_logo = {filename: "logo.svg", size: "200x50"}
 
 `page_size` accepts `"LETTER"`, `"A4"` and `"LEGAL"`. `currency` and `date_format` are set the same way.
 
+Leave `date_format` unset and dates follow the active locale (see [I18n](#i18n)). Set it, in `Tallyman::Config` or as a `date_format` on the invoice, and that [strftime](https://docs.ruby-lang.org/en/master/strftime_formatting_rdoc.html) string is used as is in every locale, with English month names:
+
+``` ruby
+Tallyman::Config.default.date_format = "%d/%m/%Y"
+```
+
 ## QR codes
 
 An invoice can carry a QR code, which a growing number of countries expect for tax compliance:
@@ -152,6 +158,7 @@ en:
       receipt_no: "Receipt number:"
       due_date: "Due Date:"
       paid_date: "Paid Date:"
+      date_format: "%B %e, %Y"
       subtotal: "Subtotal:"
       shipping: "Shipping:"
       tax: "Tax:"
@@ -164,6 +171,12 @@ en:
       quantity: Quantity
       amount: Amount
 ```
+
+### Dates
+
+When `date_format` is not set, the due and paid dates are written with the active locale's `tallyman.invoice.date_format`, a strftime string, and its month names. Each shipped locale has one: "November 24, 2026" in English, "24. November 2026" in German, "24 november 2026" in Dutch, "24 de noviembre de 2026" in Spanish, "24 novembre 2026" in French and "2026年11月24日" in Simplified Chinese. Override the key like any other label.
+
+The month names come from your application's `date.month_names`, which a Rails app gets from [rails-i18n](https://github.com/svenfuchs/rails-i18n). Tallyman doesn't ship them. Without them the locale's layout is kept but the month is written in English, so a German invoice reads "2. March 2026" rather than "2. März 2026".
 
 If you translate the invoice into another language, a pull request adding your locale file is welcome.
 

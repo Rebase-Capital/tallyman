@@ -11,6 +11,7 @@ nl:
       receipt_no: "Kwitantienummer:"
       due_date: "Vervaldatum:"
       paid_date: "Betaald op:"
+      date_format: "%-d %B %Y"
       subtotal: "Subtotaal:"
       shipping: "Verzendkosten:"
       tax: "Btw:"

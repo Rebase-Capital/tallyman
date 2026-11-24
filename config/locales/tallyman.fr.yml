@@ -11,6 +11,7 @@ fr:
       receipt_no: "Numéro de facture :"
       due_date: "Date limite de paiement :"
       paid_date: "Date de paiement :"
+      date_format: "%-d %B %Y"
       subtotal: "Sous-total :"
       shipping: "Livraison :"
       tax: "Taxes :"

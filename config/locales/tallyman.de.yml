@@ -11,6 +11,7 @@ de:
       receipt_no: "Quittungsnr.:"
       due_date: "Fälligkeit:"
       paid_date: "Zahlungsdatum:"
+      date_format: "%-d. %B %Y"
       subtotal: "Zwischensumme:"
       shipping: "Versand:"
       tax: "Steuern:"

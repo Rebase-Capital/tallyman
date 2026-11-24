@@ -58,7 +58,7 @@ module Tallyman # rubocop:todo Metrics/ModuleLength
       expect(presented[:details]).to include(['Receipt number:', '12'])
     end
 
-    it 'formats the due date with the configured format' do
+    it 'formats the due date in English by default' do
       invoice.due_at = Date.new(2026, 3, 2)
       expect(presented[:details]).to include(['Due Date:', 'March  2, 2026'])
     end
@@ -67,6 +67,69 @@ module Tallyman # rubocop:todo Metrics/ModuleLength
       invoice.due_at = Date.new(2026, 3, 2)
       invoice.define_singleton_method(:date_format) { '%d/%m/%Y' }
       expect(presented[:details]).to include(['Due Date:', '02/03/2026'])
+    end
+
+    describe 'dates in the active locale' do
+      let(:month_names) do
+        {
+          en: %w[January February March April May June July August September October November December],
+          de: %w[Januar Februar März April Mai Juni Juli August September Oktober November Dezember],
+          nl: %w[januari februari maart april mei juni juli augustus september oktober november december]
+        }
+      end
+
+      before { invoice.due_at = Date.new(2026, 3, 2) }
+
+      # Stored translations outlive the example unless the backend is reloaded from load_path.
+      after { I18n.reload! }
+
+      def store_month_names(names)
+        names.each { |locale, months| I18n.backend.store_translations(locale, date: {month_names: [nil, *months]}) }
+      end
+
+      it 'prints English dates exactly as 1.0.0 did' do
+        store_month_names(month_names)
+        expect(I18n.with_locale(:en) { described_class.new(invoice).to_h[:details] })
+          .to include(['Due Date:', 'March  2, 2026'])
+      end
+
+      it 'prints German month names' do
+        store_month_names(month_names)
+        expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
+          .to include(['Fälligkeit:', '2. März 2026'])
+      end
+
+      it 'prints Dutch month names' do
+        store_month_names(month_names)
+        expect(I18n.with_locale(:nl) { described_class.new(invoice).to_h[:details] })
+          .to include(['Vervaldatum:', '2 maart 2026'])
+      end
+
+      it 'localizes a Time as well as a Date' do
+        store_month_names(month_names)
+        invoice.due_at = Time.utc(2026, 11, 24, 15, 30)
+        expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
+          .to include(['Fälligkeit:', '24. November 2026'])
+      end
+
+      it 'keeps a date format set in Config as plain strftime in every locale' do
+        store_month_names(month_names)
+        Tallyman::Config.default.date_format = '%B %e, %Y'
+        expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
+          .to include(['Fälligkeit:', 'March  2, 2026'])
+      end
+
+      it "keeps the invoice's own date format as plain strftime" do
+        store_month_names(month_names)
+        invoice.define_singleton_method(:date_format) { '%d %B %Y' }
+        expect(I18n.with_locale(:nl) { described_class.new(invoice).to_h[:details] })
+          .to include(['Vervaldatum:', '02 March 2026'])
+      end
+
+      it "falls back to strftime with the locale's format when the host has no month names" do
+        expect(I18n.with_locale(:de) { described_class.new(invoice).to_h[:details] })
+          .to include(['Fälligkeit:', '2. March 2026'])
+      end
     end
 
     it 'appends custom invoice details' do

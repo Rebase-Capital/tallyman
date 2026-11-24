@@ -7,10 +7,11 @@ es:
     invoice:
       bill_to: "Facturar a"
       ship_to: "Enviar a"
-      invoice_no: "Número de factura proforma:"
-      receipt_no: "Número de factura:"
+      invoice_no: "Número de factura:"
+      receipt_no: "Número de recibo:"
       due_date: "Vencimiento:"
       paid_date: "Fecha de pago:"
+      date_format: "%-d de %B de %Y"
       subtotal: "Subtotal:"
       shipping: "Envío:"
       tax: "Impuesto:"

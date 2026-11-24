@@ -11,6 +11,7 @@ en:
       receipt_no: "Receipt number:"
       due_date: "Due Date:"
       paid_date: "Paid Date:"
+      date_format: "%B %e, %Y"
       subtotal: "Subtotal:"
       shipping: "Shipping:"
       tax: "Tax:"

@@ -8,6 +8,9 @@ module Tallyman
   # layout concern and receives nothing but literal strings.
   class InvoicePresenter
 
+    # Used when the active locale has no `tallyman.invoice.date_format`.
+    DEFAULT_DATE_FORMAT = '%B %e, %Y'
+
     def initialize(invoice)
       @invoice = invoice
     end
@@ -141,10 +144,25 @@ module Tallyman
       t('invoice.invoice_no', 'Invoice #:')
     end
 
+    # A date format set on the invoice or in Config is a plain strftime string and is used as is.
+    # Without one, the active locale supplies the format and the month names.
     def date(value)
       return value.to_s unless value.is_a?(Date) || value.is_a?(Time)
 
-      value.strftime(setting(:date_format))
+      format = setting(:date_format)
+      return value.strftime(format) if format
+
+      localized_date(value, t('invoice.date_format', DEFAULT_DATE_FORMAT))
+    end
+
+    # Month names come from the host's `date.month_names` (rails-i18n, or its own locale files).
+    # A host without them still gets the locale's layout, with Ruby's English month names.
+    def localized_date(value, format)
+      return value.strftime(format) unless I18n.exists?('date.month_names')
+
+      I18n.l(value, format: format)
+    rescue I18n::ArgumentError
+      value.strftime(format)
     end
 
     def t(key, default)
