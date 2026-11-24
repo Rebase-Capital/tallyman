@@ -125,10 +125,15 @@ jobs:
       # commit that set the version, not on whatever main has moved to since. Release Drafter
       # keeps a draft named after the next version; when one is waiting, it is published with the
       # changelog notes rather than left beside a second release of the same version.
+      #
+      # bash rather than the default shell so pipefail is on: a failed draft lookup must stop the
+      # step, not read as "no draft" and publish a second release beside it.
       - name: Create the GitHub release
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.value }}
+          JUST_PUSHED: ${{ steps.published.outputs.value == 'false' }}
         run: |
           if gh release view "${VERSION}" --json isDraft --jq '.isDraft' 2>/dev/null | grep -q false; then
             echo "The ${VERSION} release already exists."
@@ -139,10 +144,25 @@ jobs:
             changelog = File.read("CHANGELOG.md")
             print changelog[/^## #{Regexp.escape(ENV.fetch("VERSION"))}\b.*?(?=\n## |\z)/m].to_s.strip
           ')
-          target=$(git log -1 --format=%H -- tallyman.gemspec)
+          if [ -z "${notes}" ]; then
+            echo "CHANGELOG.md has no '## ${VERSION}' entry to use as the release notes." >&2
+            exit 1
+          fi
 
-          draft=$(gh api "repos/${GITHUB_REPOSITORY}/releases" \
-            --jq ".[] | select(.draft and (.tag_name == \"${VERSION}\" or .name == \"${VERSION}\" or (.name | startswith(\"${VERSION} \")))) | .id" | head -n 1)
+          # The gem was built from this run's commit when this run pushed it. On a re-run it was
+          # built earlier, from the main-line commit that put this version into the gemspec.
+          if [ "${JUST_PUSHED}" = "true" ]; then
+            target="${GITHUB_SHA}"
+          else
+            target=$(git log -1 --first-parent --format=%H -S "'${VERSION}'" -- tallyman.gemspec)
+          fi
+          if [ -z "${target}" ]; then
+            echo "Could not find the commit that set version ${VERSION}." >&2
+            exit 1
+          fi
+
+          draft=$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" \
+            --jq "[.[] | select(.draft and (.tag_name == \"${VERSION}\" or .name == \"${VERSION}\" or ((.name // \"\") | startswith(\"${VERSION} \"))))] | .[0].id // empty")
           if [ -n "${draft}" ]; then
             gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/${draft}" \
               -f tag_name="${VERSION}" -f target_commitish="${target}" -f name="${VERSION}" \
