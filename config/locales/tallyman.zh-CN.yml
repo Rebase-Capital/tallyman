@@ -11,6 +11,7 @@ zh-CN:
       receipt_no: "收据号码:"
       due_date: "到期日期:"
       paid_date: "支付日期:"
+      date_format: "%Y年%-m月%-d日"
       subtotal: "小计:"
       shipping: "运费:"
       tax: "税费:"

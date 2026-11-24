@@ -228,6 +228,14 @@ module Tallyman # rubocop:todo Metrics/ModuleLength
       end
 
       context 'with the locale set to Spanish' do
+        # Month names come from the host (rails-i18n in a Rails app), so stand in for it here.
+        before do
+          months = %w[enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre]
+          I18n.backend.store_translations(:es, date: {month_names: [nil, *months]})
+        end
+
+        after { I18n.reload! }
+
         it 'renders and invoice in Spanish' do # rubocop:todo RSpec/ExampleLength
           I18n.with_locale :es do
             Tallyman::Config.default.company_details = 'Dirección'

@@ -33,7 +33,9 @@ module Tallyman
       self.invoice_logo = File.expand_path('assets/default_logo.png', __dir__)
       self.company_name = 'Awesome Corp'
       self.company_details = 'awesomecorp@commondream.net'
-      self.date_format = '%B %e, %Y'
+      # nil lets each locale format its dates (tallyman.invoice.date_format). A strftime string
+      # here applies to every locale.
+      self.date_format = nil
       self.currency = 'USD'
       self.page_size = 'LETTER'
     end
